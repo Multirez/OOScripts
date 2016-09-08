@@ -15,11 +15,6 @@ local mineSize = 15
 local downSize = 15
 local shaftLength = 0
 
-local pos = {0, 0, 0} -- x, y, z
-function pos:toString()
-    return "dX=" .. self[1] .. ", dY=" .. self[2] .. ", dZ=" .. self[3]
-end
-
 function Initialize()
     print("Введите размер выработки:")
     local input = tonumber(io.read())
@@ -40,52 +35,7 @@ function Initialize()
     end
 end
 
-local needDurability = 0
-local lastDurability = 0
-
-function CheckPickaxe() --returns прочность и на сколько еще проходов еще хватит
-    local durability, eror = robot.durability()
-    while(durability == nil) do
-        if(eror == "tool cannot be damaged") then
-            lastDurability = 1
-            print("Ого, какой инструмент, и где такие выдают?!")
-            return 1, 100500
-        end
-        print("Нужна палка-копалка, дай одну!")
-        io.read()
-        durability, eror = robot.durability()
-    end
-
-    if(durability > 0.9999) then
-        needDurability = 0
-        lastDurability = durability
-        print("Кирка блестит как новенькая! Пойду проверю как копает...")
-        return durability, 100500 
-    end
-    
-    if(lastDurability < durability) then
-        needDurability = 0
-        lastDurability = durability
-
-        if(durability < 0.2) then 
-            print("Да это просто мусор, а не кирка! Или ты думаешь, что я камни зубами грызть буду?..")
-            io.read()
-            return CheckPickaxe()
-        end
-
-        print("Кирка, не новенькая, ну чем богаты тем и рады :)")
-        return durability, 100500
-    end 
-
-    needDurability = (needDurability + lastDurability - durability) * 0.5
-    lastDurability = durability
-    local numberOfPasses = durability / needDurability
-
-    --print("Кирка " .. math.floor(lastDurability * 100) .. "% хватит на " .. math.floor(numberOfPasses) .. " проходов.")
-    return durability, numberOfPasses
-end
-
-
+--region Robot
 function robot.detect(side)
     return component.robot.detect(side)
 end
@@ -173,6 +123,15 @@ function UpdatePos(pos, side)
     end
 end
 
+--endregion
+
+--region Movement
+
+local pos = {0, 0, 0} -- x, y, z
+function pos:toString()
+    return "dX=" .. self[1] .. ", dY=" .. self[2] .. ", dZ=" .. self[3]
+end
+
 function Move(side, count) -- возвращает false если не может дойти до цели и сколько прошел блоков
     local backSide = side
     side = robot.rotate(side, false)
@@ -221,6 +180,54 @@ function GotoBase() -- возвратит true если дойдет до баз
     return false
 end
 
+--endregion
+
+--region CheckState
+local needDurability = 0
+local lastDurability = 0
+
+function CheckPickaxe() --returns прочность и на сколько еще проходов еще хватит
+    local durability, eror = robot.durability()
+    while(durability == nil) do
+        if(eror == "tool cannot be damaged") then
+            lastDurability = 1
+            print("Ого, какой инструмент, и где такие выдают?!")
+            return 1, 100500
+        end
+        print("Нужна палка-копалка, дай одну!")
+        io.read()
+        durability, eror = robot.durability()
+    end
+
+    if(durability > 0.9999) then
+        needDurability = 0
+        lastDurability = durability
+        print("Кирка блестит как новенькая! Пойду проверю как копает...")
+        return durability, 100500 
+    end
+    
+    if(lastDurability < durability) then
+        needDurability = 0
+        lastDurability = durability
+
+        if(durability < 0.2) then 
+            print("Да это просто мусор, а не кирка! Или ты думаешь, что я камни зубами грызть буду?..")
+            io.read()
+            return CheckPickaxe()
+        end
+
+        print("Кирка, не новенькая, ну чем богаты тем и рады :)")
+        return durability, 100500
+    end 
+
+    needDurability = (needDurability + lastDurability - durability) * 0.5
+    lastDurability = durability
+    local numberOfPasses = durability / needDurability
+
+    --print("Кирка " .. math.floor(lastDurability * 100) .. "% хватит на " .. math.floor(numberOfPasses) .. " проходов.")
+    return durability, numberOfPasses
+end
+
 local needEnergy = 0
 local lastEnergy = 0
 local shaftPos = {0, 0, 0}
@@ -247,33 +254,6 @@ function CheckState() -- true если продолжаем копку
     progress = (shaftPos[1] * mineSize + shaftPos[3]) / (mineSize^2) * 100
     print("Прогресс: "..math.floor(progress).."% Кирка: "..math.floor(picDur * 100).."%")
     return true  
-end
-
-function Mine()
-    local isWorking = true
-    while (isWorking and shaftPos[1] < mineSize) do
-        while (isWorking and shaftPos[3] < mineSize) do
-            Move(sides.down, downSize)
-            Move(sides.up, -(shaftLength + pos[2]))
-
-            isWorking = CheckState()
-            if(isWorking) then
-                Move(sides.forward, 1)
-                UpdatePos(shaftPos, sides.forward)
-            end
-        end
-        Move(sides.back, pos[3])
-        if(isWorking) then
-            Move(sides.right, 1)
-            shaftPos[3] = 0
-            UpdatePos(shaftPos, sides.right)
-        end
-    end
-    if(isWorking) then
-        print("Работа выполнена, теперь можно и расслабиться...")
-        return true
-    end
-    return false
 end
 
 function FindChest() -- true если нашел и сторона куда повернут, и сторона с которой взаимодействовать
@@ -310,6 +290,35 @@ function PrintTable(table)
     for name, val in pairs(table) do
         print(name, val)
     end
+end
+
+--endregion
+
+function Mine()
+    local isWorking = true
+    while (isWorking and shaftPos[1] < mineSize) do
+        while (isWorking and shaftPos[3] < mineSize) do
+            Move(sides.down, downSize)
+            Move(sides.up, -(shaftLength + pos[2]))
+
+            isWorking = CheckState()
+            if(isWorking) then
+                Move(sides.forward, 1)
+                UpdatePos(shaftPos, sides.forward)
+            end
+        end
+        Move(sides.back, pos[3])
+        if(isWorking) then
+            Move(sides.right, 1)
+            shaftPos[3] = 0
+            UpdatePos(shaftPos, sides.right)
+        end
+    end
+    if(isWorking) then
+        print("Работа выполнена, теперь можно и расслабиться...")
+        return true
+    end
+    return false
 end
 
 function DropHabar()
@@ -410,10 +419,11 @@ function Start()
         Move(sides.right, shaftPos[1])
         Move(sides.forward, shaftPos[3])
         isDone = Mine()
-        while(pos[1]~=0 or pos[2]~=0 or pos[3]~=0) do
-            GotoBase()
+        GotoBase()
+        while(pos[1]~=0 or pos[2]~=0 or pos[3]~=0) do            
             print("Ждем 30 сек.")
             os.sleep(30)
+            GotoBase()
         end
         while(DropHabar() ~= true) do 
             print("Некуда грузить! Начальнике давай тару, выгружать буде!")
