@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>E439935D-B2A2-46AE-856D-2AA408428F33</ProjectGuid>
+    <!--$guid1$-->
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>
+    </StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="usr\" />
+    <Folder Include="lib\" />
+    <Folder Include="usr\lib\" />
+    <Folder Include="usr\drone\" />
+    <Folder Include="usr\Robot\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="lib\buffer.lua" />
+    <Compile Include="lib\colors.lua" />
+    <Compile Include="lib\event.lua" />
+    <Compile Include="lib\filesystem.lua" />
+    <Compile Include="lib\io.lua" />
+    <Compile Include="lib\keyboard.lua" />
+    <Compile Include="lib\note.lua" />
+    <Compile Include="lib\package.lua" />
+    <Compile Include="lib\process.lua" />
+    <Compile Include="lib\rc.lua" />
+    <Compile Include="lib\robot.lua" />
+    <Compile Include="lib\serialization.lua" />
+    <Compile Include="lib\shell.lua" />
+    <Compile Include="lib\sides.lua" />
+    <Compile Include="lib\term.lua" />
+    <Compile Include="usr\lib\queue.lua" />
+    <Compile Include="usr\lib\example.lua" />
+    <Compile Include="usr\drone\controll.lua" />
+    <Compile Include="usr\drone\eeprom.lua" />
+    <Compile Include="usr\Robot\miner.lua" />
+    <Compile Include="usr\Robot\minerExample.lua" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+</Project>
