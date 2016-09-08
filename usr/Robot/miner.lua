@@ -119,6 +119,43 @@ function robot.rotate(side, invert)
     return newSide
 end
 
+function robot.find(filter, warn) -- true если нашел и сторона куда повернут, и сторона с которой взаимодействовать
+    if(component.isAvailable("geolyzer") ~= true) then
+        if(warn == nil or warn) then print("Нет геолайзера чтобы осмотреться вокруг") end
+        return false
+    end
+    local geo = component.geolyzer
+    local function Check(block)
+        return block ~= nill and string.find(block.name, filter) ~= nil
+    end
+
+    local block = geo.analyze(sides.forward)
+    if(Check(block))then
+        return true, sides.forward, sides.forward
+    end
+    block = geo.analyze(sides.up) 
+    if(Check(block))then
+        return true, sides.up, sides.up
+    end
+    robot.turnRight()
+    block = geo.analyze(sides.forward)
+    if(Check(block))then
+        return true, sides.right, sides.forward
+    end
+    robot.turnRight()
+    block = geo.analyze(sides.forward)
+    if(Check(block))then
+        return true, sides.back, sides.forward
+    end
+    robot.turnRight()
+    block = geo.analyze(sides.forward)
+    if(Check(block))then
+        return true, sides.left, sides.forward
+    end
+
+    robot.turnRight()
+    return false
+end
 
 function UpdatePos(pos, side)
     if (side == sides.up) then 

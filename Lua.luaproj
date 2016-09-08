@@ -48,6 +48,7 @@
     <Compile Include="usr\lib\example.lua" />
     <Compile Include="usr\drone\controll.lua" />
     <Compile Include="usr\drone\eeprom.lua" />
+    <Compile Include="usr\lib\robotExt.lua" />
     <Compile Include="usr\Robot\miner.lua" />
     <Compile Include="usr\Robot\minerExample.lua" />
   </ItemGroup>
