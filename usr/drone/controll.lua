@@ -10,7 +10,7 @@ local basePort = 10
 modem.open(basePort)
  
 function onModemMessage(_, _, senderAddress, _, distance, status, result , ...)
-    print("from:", senderAddress, "distance:", distance, "status:", status, "msg:", result, "other:", ...)
+    print("from:" .. senderAddress, "distance:" .. distance, "status:".. status, "msg:", result, "other:", ...)
 end
  
 if event.listen("modem_message", onModemMessage) then
