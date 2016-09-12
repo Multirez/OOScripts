@@ -711,6 +711,7 @@ end
 
 function KOPALKA.on_modem_message(_, _, _, _, _, message, ...)
     messages.push(message)
+    sendSt("add message to queue: " .. message)
 end
 
 function KOPALKA.check_home_command()
