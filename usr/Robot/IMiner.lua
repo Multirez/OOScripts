@@ -21,6 +21,7 @@ local lc = {x=0, y=0, z=0, dr=3, xMax = 0, zMax = 0}
 local way = 0
 local ore_count = 0
 local warp = false
+local messages = create_queue()
 local bedrockWidth = 5
 local back_to_the_future_mode = false
 local minHardness = 2.05
@@ -1063,7 +1064,6 @@ function KOPALKA.check_components()
   end
   if comp.isAvailable("tunnel") then
     warp = true
-    messages = create_queue()
     event.listen("modem_message", OnModemMessage)
 	print("\t Связанная карта....доступна.")
   else
