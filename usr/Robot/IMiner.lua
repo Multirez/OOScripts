@@ -710,14 +710,14 @@ function KOPALKA.check_state()
 end 
 
 function OnModemMessage(_, _, _, _, _, message, ...)
-    messages.push(message)
+    messages:push(message)
     sendSt("add message to queue: " .. message)
 end
 
 function KOPALKA.check_home_command()
     if warp then
         while messages:count() > 0 do
-            if(messages.pull() == "home") then 
+            if(messages:pull() == "home") then 
                 return true
             end
         end
