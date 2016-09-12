@@ -709,7 +709,7 @@ function KOPALKA.check_state()
   end 
 end 
 
-function KOPALKA.on_modem_message(_, _, _, _, _, message, ...)
+function OnModemMessage(_, _, _, _, _, message, ...)
     messages.push(message)
     sendSt("add message to queue: " .. message)
 end
@@ -1061,7 +1061,7 @@ function KOPALKA.check_components()
   if comp.isAvailable("tunnel") then
     warp = true
     messages = create_queue()
-    event.listen("modem_message", KOPALKA.on_modem_message)
+    event.listen("modem_message", OnModemMessage)
 	print("\t Связанная карта....доступна.")
   else
     print("\t Связанная карта не обнаружена. Начать работу? (0/1)")
@@ -1129,7 +1129,7 @@ function KOPALKA.mine(x, z, bedrock, side, x_lim, z_lim)
     KOPALKA.home()
     KOPALKA.rot(3)
   end
-  if warp then event.ignore("modem_message", KOPALKA.on_modem_message) end
+  if warp then event.ignore("modem_message", OnModemMessage) end
 end
 
 function main(tArgs, options)
