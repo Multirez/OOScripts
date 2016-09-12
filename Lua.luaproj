@@ -44,11 +44,14 @@
     <Compile Include="lib\shell.lua" />
     <Compile Include="lib\sides.lua" />
     <Compile Include="lib\term.lua" />
+    <Compile Include="usr\drone\LinkedControll.lua" />
     <Compile Include="usr\lib\queue.lua" />
     <Compile Include="usr\lib\example.lua" />
     <Compile Include="usr\drone\controll.lua" />
     <Compile Include="usr\drone\eeprom.lua" />
     <Compile Include="usr\lib\robotExt.lua" />
+    <Compile Include="usr\lib\time.lua" />
+    <Compile Include="usr\Robot\IMiner.lua" />
     <Compile Include="usr\Robot\miner.lua" />
     <Compile Include="usr\Robot\minerExample.lua" />
   </ItemGroup>
