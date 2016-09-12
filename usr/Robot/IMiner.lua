@@ -721,7 +721,8 @@ function KOPALKA.check_home_command()
     if warp == true then
         while messages:count() > 0 do
             local message = messages:pull()
-            if(message == "home") then 
+            if(message == "home") then
+                sendSt("Получена команда: Срочно домой!")
                 return true
             else
                 sendSt("Неизвестная команда: " .. message)
