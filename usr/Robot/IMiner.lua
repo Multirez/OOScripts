@@ -696,7 +696,8 @@ function KOPALKA.check_state()
     fuel(false)
     KOPALKA.back_to_mine()
   end  
-    
+  
+  os.sleep(0.1)  
   if KOPALKA.check_home_command() then
     KOPALKA.home()
     print("Экстренный вызов домой, вернуться в шахту? (0/1)")
@@ -1050,7 +1051,8 @@ function KOPALKA.geoMiner(x, z, bedrock, side, x_lim, z_lim)
     end
   end 
   KOPALKA.home()
-  KOPALKA.rot(3)
+  KOPALKA.rot(3)  
+  if warp then event.ignore("modem_message", OnModemMessage) end
   sendSt("Итого руды добыто: "..ore_count)
   sendSt("Всего блоков пройдено: "..way)
   sendSt('Робот '..r.name()..' завершил работу.')
@@ -1132,9 +1134,9 @@ function KOPALKA.mine(x, z, bedrock, side, x_lim, z_lim)
     sendSt('Ошибка/препятствие. Возврат робота.')
     KOPALKA.mTo(lc.x, 0, lc.z)
     KOPALKA.home()
-    KOPALKA.rot(3)
+    KOPALKA.rot(3)    
+    if warp then event.ignore("modem_message", OnModemMessage) end
   end
-  if warp then event.ignore("modem_message", OnModemMessage) end
 end
 
 function main(tArgs, options)
