@@ -646,7 +646,7 @@ function KOPALKA.inv_sorting()
 end
 
 function KOPALKA.check_state()
-  sendSt(sprintf("keep-alive %d", "x="..lc.x.." z="..lc.z.." y="..lc.y))
+  sendSt(sprintf("keep-alive x=%i z=%i y=%i", lc.x, lc.z, lc.y))
   local need_fuel = computer.energy() < (computer.maxEnergy()*0.90)
   
   local function inventory()
