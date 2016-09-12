@@ -586,6 +586,34 @@ end
 
 -----------------------------------ДВИЖЕНИЕ С ПРОГРАММНОЙ НАВИГАЦИЕЙ [END]
 
+-----------------------------------ОЧЕРЕДЬ СООБЩЕНИЙ [BEGIN]
+function create_queue()
+    local queue = {}
+    queue.firstIndex = 1
+    queue.lastIndex = 0
+
+    function queue:count()
+        return self.lastIndex - self.firstIndex + 1
+    end
+
+    function queue:push(obj)
+        local last = self.lastIndex + 1
+        self.lastIndex = last
+        self[last] = obj
+    end
+
+    function queue:pull()
+        if self:count() <= 0 then error("queue is empty or corrupted") end
+        local first = self.firstIndex
+        local result = self[first]
+        self[first] = nil
+        self.firstIndex = first + 1
+        return result
+    end
+
+    return queue
+end
+-----------------------------------ОЧЕРЕДЬ СООБЩЕНИЙ [END]
 
 function KOPALKA.check_inv()
   return r.inventorySize()
@@ -618,9 +646,9 @@ function KOPALKA.inv_sorting()
 end
 
 function KOPALKA.check_state()
-  sendSt(sprintf("keep-alive %d", computer.uptime()))
+  sendSt(sprintf("keep-alive %d", "x="..lc.x.." z="..lc.z.." y="..lc.y))
   local need_fuel = computer.energy() < (computer.maxEnergy()*0.90)
-
+  
   local function inventory()
     local need_to_home = false
     if (r.count(inv_size-2) > 0) then   
@@ -666,8 +694,35 @@ function KOPALKA.check_state()
     KOPALKA.charge_tool(charge_side, inv_size-2)  
     fuel(false)
     KOPALKA.back_to_mine()
-  end    
+  end  
+    
+  if KOPALKA.check_home_command() then
+    KOPALKA.home()
+    print("Экстренный вызов домой, вернуться в шахту? (0/1)")
+    print('> ')
+    if tonumber(io.read()) ~= 1 then
+      os.exit()
+    end
+    KOPALKA.charge_tool(charge_side, inv_size-2)  
+    fuel(false)
+    KOPALKA.back_to_mine()
+  end 
 end 
+
+function KOPALKA.on_modem_message(_, _, _, _, _, message, ...)
+    messages.push(message)
+end
+
+function KOPALKA.check_home_command()
+    if warp then
+        while messages:count() > 0 do
+            if(messages.pull() == "home") then 
+                return true
+            end
+        end
+    end
+    return false;
+end
 
 function KOPALKA.inv_scaner(filter, internal, start_slot) --автопоисковик заданного итема в своем инвентаре по системному имени. возвращает номер ячейки итема, первого найденного от начала ивентаря.
   ins = inv.getInventorySize(3)
@@ -1004,6 +1059,8 @@ function KOPALKA.check_components()
   end
   if comp.isAvailable("tunnel") then
     warp = true
+    messages = create_queue()
+    event.listen("modem_message", KOPALKA.on_modem_message)
 	print("\t Связанная карта....доступна.")
   else
     print("\t Связанная карта не обнаружена. Начать работу? (0/1)")
@@ -1071,6 +1128,7 @@ function KOPALKA.mine(x, z, bedrock, side, x_lim, z_lim)
     KOPALKA.home()
     KOPALKA.rot(3)
   end
+  if warp then event.ignore("modem_message", KOPALKA.on_modem_message) end
 end
 
 function main(tArgs, options)
