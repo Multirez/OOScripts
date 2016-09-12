@@ -587,6 +587,7 @@ end
 
 -----------------------------------ДВИЖЕНИЕ С ПРОГРАММНОЙ НАВИГАЦИЕЙ [END]
 
+
 -----------------------------------ОЧЕРЕДЬ СООБЩЕНИЙ [BEGIN]
 function create_queue()
     local queue = {}
@@ -615,6 +616,7 @@ function create_queue()
     return queue
 end
 -----------------------------------ОЧЕРЕДЬ СООБЩЕНИЙ [END]
+
 
 function KOPALKA.check_inv()
   return r.inventorySize()
@@ -717,7 +719,7 @@ function OnModemMessage(_, _, _, _, _, message, ...)
 end
 
 function KOPALKA.check_home_command()
-    sendSt("Проверка сообщений, "..messages:count().." сообщений в очереди");
+    --sendSt("Проверка сообщений, "..messages:count().." сообщений в очереди");
     if warp == true then
         while messages:count() > 0 do
             local message = messages:pull()
