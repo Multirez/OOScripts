@@ -49,14 +49,6 @@ function Time2String(time)
     return string.format("%i:%02i:%02i", (hours % 24), (minutes % 60), (seconds % 60))
 end
 
-function onMessage(_, _, senderAddress, _, distance, status, result , ...)   
-    messageList:push(string.format(" msg:%s %s from:%s  ", status, Time2String(os.time()), senderAddress) .. (result or "") .. "\n")
-    if(messageList:count() > infoSize) then
-        messageList:pull()
-    end
-    drawInfo()
-end
-
 function drawInfo()
     local gpu = component.gpu  
     local x, y = gpu.getResolution()
@@ -66,6 +58,20 @@ function drawInfo()
     end
 end
 
+-- event listeners
+function onModemMessage(_, _, senderAddress, _, distance, status, result , ...)   
+    messageList:push(string.format("%s %s from:%s ", Time2String(os.time()), status, senderAddress) .. (result or "") .. "\n")
+    if(messageList:count() > infoSize) then
+        messageList:pull()
+    end
+    drawInfo()
+end
+
+function onKeyUp(_, senderAddress, charId, keyId, ...)
+    if(charId == 13) then -- screen will scroll
+        drawInfo() -- update info panel
+    end
+end
 
 print("Input size for info panel (rows):") 
 local input = tonumber(io.read())
@@ -87,11 +93,13 @@ end
 drawInfo()
 
 -- listen to modem messages
-if event.listen("modem_message", onMessage) then
+if event.listen("modem_message", onModemMessage) then
     print("Successfully subscribe to modem messages!")
 else
     print("Can't to subscribe to modem messages!")
 end
+-- keyboard input
+event.listen("key_up", onKeyUp)
 
 -- send user input wia tunnel
 while true do
