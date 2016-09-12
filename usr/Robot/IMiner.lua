@@ -711,11 +711,12 @@ function KOPALKA.check_state()
 end 
 
 function OnModemMessage(_, _, _, _, _, message, ...)
-    print(message, ...)
+    sendSt("Новое входящее сообщение: " .. message)
     messages:push(message)
 end
 
 function KOPALKA.check_home_command()
+    sendSt("Проверка сообщений, "..messages:count().." сообщений в очереди");
     if warp == true then
         while messages:count() > 0 do
             local message = messages:pull()
