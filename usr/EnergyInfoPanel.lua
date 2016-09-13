@@ -46,9 +46,15 @@ function printStorage()
   local progress = math.floor(s / c * 10)
   local bar = string.rep("+", progress) .. string.rep("-", 10 - progress)
   -- print results
+  gpu.setForeground(0xBFF5F5)
   print(string.format(" Capacity: %10i", c))
   print(string.format("   Energy: %10i", s))
   print(string.format("     Fill: %10s", bar))
+  if (inout < 0) then
+    gpu.setForeground(0xF5BFBF)
+  else
+    gpu.setForeground(0xBFF5C2)
+  end
   print(string.format("   In/Out: %10i", inout))
 end
 
@@ -60,8 +66,7 @@ print("Show info panel? (1/0)")
 local input = tonumber(io.read())
 if (input ~= nil and input == 1) then
   gpu.setResolution(22, 5)
-  gpu.setForeground(0x000000)
-  gpu.setBackground(0xFFFFFF)
+  gpu.setBackground(0x000000)
   term.clear()
   local eName = nil
   while eName == nil do
@@ -70,4 +75,5 @@ if (input ~= nil and input == 1) then
     eName = event.pull(updateInterval, "interrupted")
   end
   gpu.setResolution(gpu.maxResolution())
+  gpu.setForeground(0xFFFFFF)
 end
