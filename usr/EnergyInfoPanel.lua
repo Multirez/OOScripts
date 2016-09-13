@@ -46,14 +46,16 @@ function printStorage()
   local progress = math.floor(s / c * 10)
   local bar = string.rep("+", progress) .. string.rep("-", 10 - progress)
   -- print results
-  gpu.setForeground(0xBFF5F5)
+  gpu.setForeground(0x76E2FF)
   print(string.format(" Capacity: %10i", c))
   print(string.format("   Energy: %10i", s))
   print(string.format("     Fill: %10s", bar))
   if (inout < 0) then
-    gpu.setForeground(0xF5BFBF)
+    gpu.setForeground(0xFF0000)
+    gpu.setForeground(0xFF7676)
   else
-    gpu.setForeground(0xBFF5C2)
+    gpu.setForeground(0x00FF00)
+    gpu.setForeground(0x76FF88)
   end
   print(string.format("   In/Out: %10i", inout))
 end
@@ -61,6 +63,7 @@ end
 print("storage list:")
 printt(storages)
 printStorage()
+gpu.setForeground(0xFFFFFF)
 
 print("Show info panel? (1/0)")
 local input = tonumber(io.read())
