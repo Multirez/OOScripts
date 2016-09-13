@@ -33,8 +33,10 @@ function printStorage(isColorBar)
   -- sum data from all storages
   for a, n in pairs(storages) do
     p = component.proxy(a)
-    s = s + p.getStored()
-    c = c + p.getCapacity()
+    if p ~= nil then
+      s = s + p.getStored()
+      c = c + p.getCapacity()
+    end
   end
   -- time interval
   local newTimePoint = computer.uptime()
@@ -43,17 +45,17 @@ function printStorage(isColorBar)
   -- calc in/out diff
   local inout = (s - lastStored) / timeInterval / 20
   lastStored = s
-  local progress = math.floor(s / c * 8.33)
+  local progress = math.floor(s / c * 12)
   local bar = string.rep("+", progress) .. string.rep("-", 12 - progress)
   -- print results
   gpu.setForeground(0x76E2FF)
-  print(string.format(" Capacity: %4i %3i %3i", c/1000000, (c % 1000000)/1000, c % 1000))
-  print(string.format("   Energy: %4i %3i %3i", s/1000000, (s % 1000000)/1000, s % 1000))
-  print(string.format(" Fill %3i%% %12s", math.floor(s / c * 100), bar))
+  print(string.format(" Capacity: %4i %03i %03i", c/1000000, (c % 1000000)/1000, c % 1000))
+  print(string.format("   Energy: %4i %03i %03i", s/1000000, (s % 1000000)/1000, s % 1000))
+  print(string.format("%3i%% Fill: %12s", math.floor(s / c * 100), bar))
   if(isColorBar) then
-      gpu.setForeground(0xFFA500)
-      gpu.setForeground(0xFFD376)
-      gpu.set(12, 4, string.rep("+", progress))
+    gpu.setForeground(0xFFA500)
+    gpu.setForeground(0xFFD376)
+    gpu.set(12, 4, string.rep("+", progress))
   end
   if (inout < 0) then
     gpu.setForeground(0xFF0000)
