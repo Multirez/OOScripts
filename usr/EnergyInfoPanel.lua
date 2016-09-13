@@ -5,6 +5,7 @@ local computer = require("computer")
 local component = require("component")
 local term = require("term")
 local event = require("event")
+local gpu = component.gpu
 
 local storages = {}
 local lastStored = 0
@@ -58,8 +59,9 @@ printStorage()
 print("Show info panel? (1/0)")
 local input = tonumber(io.read())
 if (input ~= nil and input == 1) then
-  local x, y = component.gpu.getResolution()
-  component.gpu.setResolution(22, 5)
+  gpu.setResolution(22, 5)
+  gpu.setForeground(0x000000)
+  gpu.setBackground(0xFFFFFF)
   term.clear()
   local eName = nil
   while eName == nil do
@@ -67,5 +69,5 @@ if (input ~= nil and input == 1) then
     printStorage()
     eName = event.pull(updateInterval, "interrupted")
   end
-  component.gpu.setResolution(x, y)
+  gpu.setResolution(gpu.maxResolution())
 end
