@@ -45,6 +45,7 @@
     <Compile Include="lib\sides.lua" />
     <Compile Include="lib\term.lua" />
     <Compile Include="usr\drone\LinkedControll.lua" />
+    <Compile Include="usr\EnergyInfoPanel.lua" />
     <Compile Include="usr\lib\queue.lua" />
     <Compile Include="usr\lib\example.lua" />
     <Compile Include="usr\drone\controll.lua" />
