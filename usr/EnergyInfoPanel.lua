@@ -28,7 +28,7 @@ table.add(storages, component.list("afsu"))
 table.add(storages, component.list("mfsu"))
 table.add(storages, component.list("mfu"))
 
-function printStorage()
+function printStorage(isColorBar)
   local p, s, c = nil, 0, 0
   -- sum data from all storages
   for a, n in pairs(storages) do
@@ -50,9 +50,11 @@ function printStorage()
   print(string.format(" Capacity: %10i", c))
   print(string.format("   Energy: %10i", s))
   print(string.format("     Fill: %10s", bar))
-  gpu.setForeground(0xFFA500)
-  gru.setForeground(0xFFD376)
-  gpu.set(12, 4, string.rep("+", progress))
+  if(isColorBar) then
+      gpu.setForeground(0xFFA500)
+      gpu.setForeground(0xFFD376)
+      gpu.set(12, 4, string.rep("+", progress))
+  end
   if (inout < 0) then
     gpu.setForeground(0xFF0000)
     gpu.setForeground(0xFF7676)
@@ -77,7 +79,7 @@ if (input ~= nil and input == 1) then
   local eName = nil
   while eName == nil do
     term.setCursor(1, 2)
-    printStorage()
+    printStorage(true)
     eName = event.pull(updateInterval, "interrupted")
   end
   gpu.setResolution(gpu.maxResolution())
