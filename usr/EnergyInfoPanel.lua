@@ -49,7 +49,7 @@ function printStorage(isColorBar)
   gpu.setForeground(0x76E2FF)
   print(string.format(" Capacity: %4i %3i %3i", c/1000000, (c % 1000000)/1000, c % 1000))
   print(string.format("   Energy: %4i %3i %3i", s/1000000, (s % 1000000)/1000, s % 1000))
-  print(string.format("Fill %3i\% %12s", math.floor(s / c), bar))
+  print(string.format("Fill %3i%% %12s", math.floor(s / c), bar))
   if(isColorBar) then
       gpu.setForeground(0xFFA500)
       gpu.setForeground(0xFFD376)
