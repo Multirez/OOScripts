@@ -26,7 +26,7 @@ end
 
 table.add(storages, component.list("afsu"))
 table.add(storages, component.list("mfsu"))
-table.add(storages, component.list("mfu"))
+table.add(storages, component.list("mfe"))
 
 function printStorage(isColorBar)
   local p, s, c = nil, 0, 0
@@ -38,6 +38,7 @@ function printStorage(isColorBar)
       c = c + p.getCapacity()
     end
   end
+  if(c<=0) then c = 1 end
   -- time interval
   local newTimePoint = computer.uptime()
   local timeInterval = newTimePoint - updateTimePoint
