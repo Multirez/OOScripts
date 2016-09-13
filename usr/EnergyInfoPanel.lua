@@ -5,12 +5,15 @@ local computer = require("computer")
 local component = require("component")
 local term = require("term")
 local event = require("event")
+local sides = require("sides")
 local gpu = component.gpu
 
 local storages = {}
+local capacity = 1
 local lastStored = 0
 local updateTimePoint = computer.uptime()
 local updateInterval = 10 -- seconds
+local redstoneLevel = 0.3 -- enabled redstone when capacitor fill above redstoneLevel
 
 function table.add(target, source)
   for a, n in pairs(source) do 
@@ -46,6 +49,7 @@ function printStorage(isColorBar)
   -- calc in/out diff
   local inout = (s - lastStored) / timeInterval / 20
   lastStored = s
+  capacity = c
   local progress = math.floor(s / c * 12)
   local bar = string.rep("+", progress) .. string.rep("-", 12 - progress)
   -- print results
@@ -68,6 +72,17 @@ function printStorage(isColorBar)
   print(string.format("   In/Out: %12i", inout))
 end
 
+function updateRedstone(capasitorFill)
+    if(component.isAvailable("redstone")) then
+        local redstone = component.proxy(component.list("redstone")())
+        local level = 0
+        if(capasitorFill > redstoneLevel) then level = 15 end
+        for side = 0, 5 do
+            redstone.setOutput(side, level)
+        end
+    end
+end
+
 print("storage list:")
 printt(storages)
 printStorage()
@@ -83,6 +98,7 @@ if (input ~= nil and input == 1) then
   while eName == nil do
     term.setCursor(1, 2)
     printStorage(true)
+    updateRedstone(lastStored/capacity)
     eName = event.pull(updateInterval, "interrupted")
   end
   gpu.setResolution(gpu.maxResolution())
