@@ -42,11 +42,11 @@ function printStorage()
   -- calc in/out diff
   local inout = (s - lastStored) / timeInterval / 20
   lastStored = s
+  local progress = math.floor(s / c * 10)
+  local bar = string.rep("+", progress) .. string.rep("-", 10 - progress)
   -- print results
   print(string.format(" Capacity: %10i", c))
   print(string.format("   Energy: %10i", s))
-  local progress = (s / c) % 0.1
-  local bar = string.rep("+", progress) .. string.rep("-", 10 - progress)
   print(string.format("     Fill: %10s", bar))
   print(string.format("   In/Out: %10i", inout))
 end
