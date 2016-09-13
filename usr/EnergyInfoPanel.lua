@@ -43,13 +43,13 @@ function printStorage(isColorBar)
   -- calc in/out diff
   local inout = (s - lastStored) / timeInterval / 20
   lastStored = s
-  local progress = math.floor(s / c * 10)
-  local bar = string.rep("+", progress) .. string.rep("-", 10 - progress)
+  local progress = math.floor(s / c * 8.33)
+  local bar = string.rep("+", progress) .. string.rep("-", 12 - progress)
   -- print results
   gpu.setForeground(0x76E2FF)
-  print(string.format(" Capacity: %10i", c))
-  print(string.format("   Energy: %10i", s))
-  print(string.format("     Fill: %10s", bar))
+  print(string.format(" Capacity: %4i %3i %3i", c/1000000, (c % 1000000)/1000, c % 1000))
+  print(string.format("   Energy: %4i %3i %3i", s/1000000, (s % 1000000)/1000, s % 1000))
+  print(string.format("Fill %3i\% %12s", math.floor(s / c), bar))
   if(isColorBar) then
       gpu.setForeground(0xFFA500)
       gpu.setForeground(0xFFD376)
@@ -62,7 +62,7 @@ function printStorage(isColorBar)
     gpu.setForeground(0x00FF00)
     gpu.setForeground(0x76FF88)
   end
-  print(string.format("   In/Out: %10i", inout))
+  print(string.format("   In/Out: %12i", inout))
 end
 
 print("storage list:")
