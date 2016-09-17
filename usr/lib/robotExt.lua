@@ -2,14 +2,15 @@ local robot = require("robot")
 local sides = require("sides")
 local component = require("component")
 
-function robot.detect(side)
-    return component.robot.detect(side)
-end
+local robotExt = {}
+local help = {} -- help texts for robotExt will be wrapped at the end
 
-function robot.swing(side, sneaky)
-    return component.robot.swing(side, side, sneaky ~= nil and sneaky ~= false)
-end
+--region Movement
+help.pos = "=table{x, y, z} - contains current robot coordinates relative the start position, "..
+    "where x - right, y - up, z - forward directional axes."
+robotExt.pos = {["x"] = 0, ["y"] = 0, ["z"] = 0}
 
+--[[
 function robot.move(side)
     return component.robot.move(side)
 end
@@ -33,6 +34,18 @@ function robot.rotate(side, invert)
     end
 
     return newSide
+end
+
+--endregion
+
+--region World interaction
+
+function robot.swing(side, sneaky)
+    return component.robot.swing(side, side, sneaky ~= nil and sneaky ~= false)
+end
+
+function robot.detect(side)
+    return component.robot.detect(side)
 end
 
 function robot.findChest() -- true если нашел и сторона куда повернут, и сторона с которой взаимодействовать    
@@ -110,4 +123,35 @@ function robot.find(filter, warn) -- true если нашел и сторона 
     return false
 end
 
-return robot
+--endregion 
+]]--
+
+--region Help wrapper
+help.reload = "function() - reload module 'robotExt' from lib folder. Uses only for debug purposes, example: myRobotExt = myRobotExt.reload()"
+function robotExt.reload()
+    package.loaded["robotExt"] = nil
+    _G["robotExt"] = nil
+    return require("robotExt")
+end
+
+local function wrap(fn, desc)
+  return setmetatable({}, {
+    __call = function (_, ...) return fn(...) end,
+    __tostring = function () return desc end
+  })
+end
+ 
+local function wrapTable(table, helpTable)
+    for n,v in pairs(table) do
+        if(type(v)=="table") then
+            
+        else
+            
+        end
+    end
+end
+
+--robotExt["pos"] = wrap(robotExt["pos"], help["pos"])
+--endregion
+
+return robotExt

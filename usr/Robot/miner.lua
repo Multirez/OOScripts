@@ -1,6 +1,6 @@
---[[ Шахтер для OpenComputers
-    для копки нужен сундук, внизу ложим кирки, рядом робот, можно еще зарядку рядом с роботом,
-    нужно улучшение работы с инвентарем, можно генератор для подзарядки углем.
+--[[ Шахтер для OpenComputers - выкапывает пласт заданной высоты.
+    Для работы робота нужно улучшение [работа с инвентарем], 
+    ставим рядом сундук и зарядку, в нижние слоты сундука ложим кирки или бур.
     
     Author: Multirezonator
     ]]
@@ -16,20 +16,21 @@ local downSize = 15
 local shaftLength = 0
 
 function Initialize()
+    local input
     print("Введите размер выработки:")
-    local input = tonumber(io.read())
+    input = tonumber(io.read())
     if (input ~= nil and input > 1) then
         mineSize = input
     end
 
     print("Введите высоту выработки:")
-    local input = tonumber(io.read())
+    input = tonumber(io.read())
     if (input ~= nil and input > 1) then
         downSize = input
     end
 
     print("Опуститься вниз без копки на (блоков):")
-    local input = tonumber(io.read())
+    input = tonumber(io.read())
     if input ~= nill then
         shaftLength = input
     end
@@ -218,7 +219,7 @@ function CheckPickaxe() --returns прочность и на сколько ещ
 
         print("Кирка, не новенькая, ну чем богаты тем и рады :)")
         return durability, 100500
-    end 
+    end
 
     needDurability = (needDurability + lastDurability - durability) * 0.5
     lastDurability = durability

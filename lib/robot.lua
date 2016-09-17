@@ -4,7 +4,8 @@ local sides = require("sides")
 local robot = {}
 
 -------------------------------------------------------------------------------
--- region General
+
+--region General
 
 function robot.name()
   return component.robot.name()
