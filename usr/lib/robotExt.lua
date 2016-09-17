@@ -1,6 +1,6 @@
-local robot = require("robot")
+--[[local robot = require("robot")
 local sides = require("sides")
-local component = require("component")
+local component = require("component")]]--
 
 local robotExt = {}
 local help = {} -- help texts for robotExt will be wrapped at the end
@@ -134,7 +134,7 @@ function robotExt.reload()
     return require("robotExt")
 end
 
-local function wrap(fn, desc)
+local function wrapFn(fn, desc)
   return setmetatable({}, {
     __call = function (_, ...) return fn(...) end,
     __tostring = function () return desc end
@@ -142,16 +142,49 @@ local function wrap(fn, desc)
 end
  
 local function wrapTable(table, helpTable)
-    for n,v in pairs(table) do
-        if(type(v)=="table") then
-            
-        else
-            
-        end
-    end
+	if(type(helpTable) ~= "table")then
+		print("Error! HelpTable must have same structure like the wrap table")
+		return
+	end
+
+	for n,v in pairs(table) do
+		if(type(v)=="table")then
+			if(helpTable[n] and type(helpTable[n])=="table")then
+				--wrapTable(v, helpTable[n])
+			elseif(type(helpTable[n])=="string") then
+				
+			end
+		elseif(type(v)=="function")then
+			if(type(helpTable)=="table" and type(helpTable[n])=="string")then
+				v = wrapFn(v, helpTable[n])
+			end
+		end
+	end
 end
 
---robotExt["pos"] = wrap(robotExt["pos"], help["pos"])
+robotExt["reload"] = wrapFn(robotExt["reload"], help["reload"])
+--wrapTable(robotExt, help)
+
 --endregion
+
+--region Debug
+local function getInfo(table, ident)
+	ident = ident or ""
+	s = "{"
+	ident = ident .. " "
+	for n,v in pairs(table) do
+		if(type(v)=="table")then
+			s = s .. n .. "=" .. getInfo(v, ident)
+		else
+			s = s .. n .. "=" .. tostring(v) .. ",\n" .. ident
+		end
+	end
+	s = s .. "}" .. tostring(table) .. "\n"
+	return s
+end
+
+print(getInfo(robotExt))
+io.read()
+--endregion --
 
 return robotExt
