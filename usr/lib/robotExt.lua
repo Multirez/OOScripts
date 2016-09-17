@@ -10,40 +10,64 @@ local robotExt = {}
 local help = {} -- help texts for robotExt will be wrapped at the end
 
 --region Movement
-help.pos = "table{x, y, z} - contains current robot coordinates relative the start position, "..
+local pos = {["x"] = 0, ["y"] = 0, ["z"] = 0}
+local direction = sides.forward
+
+help.setOrigin = "function() - robot resets its navigation state to (0,0,0), so that the current position as the origin."
+function robotExt.setOrigin()
+	pos = {["x"] = 0, ["y"] = 0, ["z"] = 0}
+	direction = sides.forward
+end
+
+help.getPos = "function():table{x, y, z} - returns table contains current robot coordinates relative the start position, "..
     "where x - right, y - up, z - forward directional axes."
 	--x = "number - value of X axis of current robot position."}
-robotExt.pos = {["x"] = 0, ["y"] = 0, ["z"] = 0}
-
---[[
-function robot.move(side)
-    return component.robot.move(side)
+function robotExt.getPos()
+	return {x=pos.x, y=pos.y, z=pos.z}
 end
 
-function robot.rotate(side, invert)
-    local count = 0
-    local newSide = side
-    if(side == sides.left) then
-        if invert then count = 1 else count = 3 end
-        newSide = sides.forward
-    elseif (side == sides.right) then
-        if invert then count = 3 else count = 1 end
-        newSide = sides.forward
-    elseif (side == sides.back) then
-        count = 2
-        newSide = sides.forward
-    end
-    --print("Повернуться раз: " .. tostring(count))
-    for i=1, count do
-        robot.turnRight()
-    end
-
-    return newSide
+help.getDir = "function():number - returns value from sides as direction relative the start."
+function robotExt.getDir()
+	return direction
 end
 
+help.move = "function(direction:number, distance:number[, isStartSpace:bool]):bool, number "..
+	"- robot try to move at [distance] of blocks to the [direction] as sides value. "..
+	"If [isStartSpace]=true robot will move relative its rotation at the start, otherwise relative the current rotation. "..
+	"Returns true if final movement point has been reached, otherwise false and how many blocks has passed."
+function robotExt.move(direction, distance, isStartSpace)
+	error("not implemented exception")
+    --[[return component.robot.move(side)]]--
+end
+
+help.rotate = "function(side: number[, isStartSpace:bool]) - rotate robot to the [side] "..
+	"relative the current rotation by default or (if [isStartSpace]=true) relative start rotation."
+function robotExt.rotate(side, isStartSpace)
+	isStartSpace = isStartSpace or false
+
+	error("not implemented exception")
+	--[[local count = 0
+	local newSide = side
+	if(side == sides.left) then
+		if invert then count = 1 else count = 3 end
+		newSide = sides.forward
+	elseif (side == sides.right) then
+		if invert then count = 3 else count = 1 end
+		newSide = sides.forward
+	elseif (side == sides.back) then
+		count = 2
+		newSide = sides.forward
+	end
+	--print("Повернуться раз: " .. tostring(count))
+	for i=1, count do
+		robot.turnRight()
+	end
+
+	return newSide]]--
+end
 --endregion
 
---region World interaction
+--[[region World interaction
 
 function robot.swing(side, sneaky)
     return component.robot.swing(side, side, sneaky ~= nil and sneaky ~= false)
