@@ -1,13 +1,18 @@
---[[local robot = require("robot")
+--[[Extended functionality for OpenComputes robot, 
+	for easy movement, navigation and manipulation with inventory.
+
+	Author: Multirez ]]--
+
 local sides = require("sides")
-local component = require("component")]]--
+local component = require("component")
 
 local robotExt = {}
 local help = {} -- help texts for robotExt will be wrapped at the end
 
 --region Movement
-help.pos = "=table{x, y, z} - contains current robot coordinates relative the start position, "..
+help.pos = "table{x, y, z} - contains current robot coordinates relative the start position, "..
     "where x - right, y - up, z - forward directional axes."
+	--x = "number - value of X axis of current robot position."}
 robotExt.pos = {["x"] = 0, ["y"] = 0, ["z"] = 0}
 
 --[[
@@ -126,14 +131,34 @@ end
 --endregion 
 ]]--
 
---region Help wrapper
-help.reload = "function() - reload module 'robotExt' from lib folder. Uses only for debug purposes, example: myRobotExt = myRobotExt.reload()"
+--region Debug
+help.reload = "function():robotExt - reload module 'robotExt' from lib folder. Uses only for debug purposes, example: myRobotExt = myRobotExt.reload()."
 function robotExt.reload()
     package.loaded["robotExt"] = nil
     _G["robotExt"] = nil
     return require("robotExt")
 end
 
+help.getInfo = "function(self):string - returns help information for functions of this library."
+function robotExt.getInfo(self, ident)
+	ident = ident or ""
+	result = "{"
+	ident = ident .. " "
+	newLine = ""
+	for n,v in pairs(self) do
+		if(type(v)=="table" and (not getmetatable(v) or not getmetatable(v).__tostring))then			
+			result = result .. newLine .. n .. "=" .. robotExt.getInfo(v, ident)
+		else
+			result = result .. newLine .. n .. "=" .. tostring(v)
+		end
+		newLine = ",\n" .. ident
+	end
+	result = result .. "}"
+	return result
+end
+--endregion
+
+--region Help wrapper
 local function wrapFn(fn, desc)
   return setmetatable({}, {
     __call = function (_, ...) return fn(...) end,
@@ -149,42 +174,32 @@ local function wrapTable(table, helpTable)
 
 	for n,v in pairs(table) do
 		if(type(v)=="table")then
-			if(helpTable[n] and type(helpTable[n])=="table")then
-				--wrapTable(v, helpTable[n])
-			elseif(type(helpTable[n])=="string") then
-				
+			if(type(helpTable[n])=="table")then
+				wrapTable(v, helpTable[n])
+			end
+			if(type(helpTable[n])=="string") then
+				mt = getmetatable(v)
+				if(not mt)then
+					mt = {}
+					setmetatable(v, mt)
+				end
+				mt.__tostring = function() return helpTable[n] end
 			end
 		elseif(type(v)=="function")then
-			if(type(helpTable)=="table" and type(helpTable[n])=="string")then
-				v = wrapFn(v, helpTable[n])
+			if(type(helpTable[n])=="string")then
+				table[n] = wrapFn(v, helpTable[n])
 			end
 		end
 	end
 end
 
-robotExt["reload"] = wrapFn(robotExt["reload"], help["reload"])
---wrapTable(robotExt, help)
+--robotExt["reload"] = wrapFn(robotExt["reload"], help["reload"])
+wrapTable(robotExt, help)
 
 --endregion
 
---region Debug
-local function getInfo(table, ident)
-	ident = ident or ""
-	s = "{"
-	ident = ident .. " "
-	for n,v in pairs(table) do
-		if(type(v)=="table")then
-			s = s .. n .. "=" .. getInfo(v, ident)
-		else
-			s = s .. n .. "=" .. tostring(v) .. ",\n" .. ident
-		end
-	end
-	s = s .. "}" .. tostring(table) .. "\n"
-	return s
-end
 
-print(getInfo(robotExt))
+print(robotExt:getInfo())
 io.read()
---endregion --
 
 return robotExt
