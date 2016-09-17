@@ -198,8 +198,7 @@ wrapTable(robotExt, help)
 
 --endregion
 
-
-print(robotExt:getInfo())
-io.read()
+--print(robotExt:getInfo())
+--io.read()
 
 return robotExt
