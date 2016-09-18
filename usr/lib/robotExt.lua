@@ -133,6 +133,27 @@ end
 
 -- endregion
 
+--region World interaction
+
+help.swing = "function(side:number[, targetSide:number [, sneaky:bool]]):bool[, string] - Makes the robot use the item "..
+"currently in the tool slot against the block or space immediately in [side] of the robot "..
+"in the same way as if a player would make a left-click. [targetSide] - if given the robot will try to 'left-click' "..
+"only on the surface as specified by side, otherwise the robot will try all possible sides. "..
+"Returns [true] if the robot could interact with the block or entity in front of it, false otherwise. "..
+"If successful the secondary parameter describes what the robot interacted with "..
+"and will be one of 'entity', 'block' or 'fire'."
+function robotExt.swing(side, targetSide, sneaky)
+   return component.robot.swing(side, targetSide, sneaky ~= nil and sneaky ~= false)
+end
+
+--[[
+function robotExt.detect(side)
+   return component.robot.detect(side)
+end
+]]--
+
+--endregion
+
 -- region Debug
 help.reload = "function():robotExt - reload module 'robotExt' from lib folder. Uses only for debug purposes, example: myRobotExt = myRobotExt.reload()."
 function robotExt.reload()
@@ -201,19 +222,10 @@ wrapTable(robotExt, help)
 
 return robotExt
 
-
---[[region World interaction
+--[[
 
 function math.sign(x)
 	return x<0 and -1 or 1
-end
-
-function robot.swing(side, sneaky)
-    return component.robot.swing(side, side, sneaky ~= nil and sneaky ~= false)
-end
-
-function robot.detect(side)
-    return component.robot.detect(side)
 end
 
 function robot.findChest() -- true если нашел и сторона куда повернут, и сторона с которой взаимодействовать
