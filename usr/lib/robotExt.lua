@@ -36,15 +36,17 @@ function robotExt.transformDirection(localDirection)
 	return rotateMap[(mapIndex + localMapIndex) % 4 + 1]
 end
 
+function math.sign(x)
+	return x<0 and -1 or 1
+end
+
 help.inverseTransformDirection = "function(startDirection:number):number - transforms direction from start space to local space."
 function robotExt.inverseTransformDirection(startDirection)	
 	if(localDirection < 2)then
 		return startDirection
 	end
-	error("not implemented exception")
-	--local mapIndex = rotateMap[sides[direction]] -- self index in rotateMap
-	--local localMapIndex = rotateMap[sides[localDirection]]
-	--return rotateMap[(mapIndex + localMapIndex) % 4 + 1]
+	local deltaMapIndex = rotateMap[sides[startDirection]] - rotateMap[sides[direction]]
+	return rotateMap[(deltaMapIndex + 4) % 4 + 1]
 end
 
 help.rotate = "function(side: number[, isStartSpace:bool]):number - rotate robot to the [side] "..
