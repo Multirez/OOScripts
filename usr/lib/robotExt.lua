@@ -26,6 +26,7 @@ end
 
 local rotateMap = {sides.forward, sides.right, sides.back, sides.left,
 	front=0, right=1, back=2, left=3} -- the help table for the sides conversion
+
 help.transformDirection = "function(localDirection:number):number - transforms direction from local space to start space."
 function robotExt.transformDirection(localDirection)	
 	if((direction == sides.forward) or (localDirection < 2))then
@@ -34,10 +35,6 @@ function robotExt.transformDirection(localDirection)
 	local mapIndex = rotateMap[sides[direction]] -- self index in rotateMap
 	local localMapIndex = rotateMap[sides[localDirection]]
 	return rotateMap[(mapIndex + localMapIndex) % 4 + 1]
-end
-
-function math.sign(x)
-	return x<0 and -1 or 1
 end
 
 help.inverseTransformDirection = "function(startDirection:number):number - transforms direction from start space to local space."
@@ -61,10 +58,12 @@ function robotExt.rotate(side, isStartSpace)
 	if(isStartSpace)then --convert to local space
 		side = robotExt.inverseTransformDirection(side)
 	end
-	--TODO: rotation logic must be here
-	--error("not implemented exception")
-
+    -- rotate robot
+    for i=1, rotateMap[sides[side]] do
+        component.robot.turn(true)
+    end
 	direction = robotExt.transformDirection(side)-- update direction
+
 	return sides.front
 end
 
@@ -87,6 +86,10 @@ end
 --endregion
 
 --[[region World interaction
+
+function math.sign(x)
+	return x<0 and -1 or 1
+end
 
 function robot.swing(side, sneaky)
     return component.robot.swing(side, side, sneaky ~= nil and sneaky ~= false)
