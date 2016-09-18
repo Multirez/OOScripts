@@ -19,16 +19,58 @@ function robotExt.setOrigin()
 	direction = sides.forward
 end
 
+help.getDir = "function():number - returns value from sides as direction relative the start."
+function robotExt.getDir()
+	return direction
+end
+
+local rotateMap = {sides.forward, sides.right, sides.back, sides.left,
+	front=0, right=1, back=2, left=3} -- the help table for the sides conversion
+help.transformDirection = "function(localDirection:number):number - transforms direction from local space to start space."
+function robotExt.transformDirection(localDirection)	
+	if((direction == sides.forward) or (localDirection < 2))then
+		return localDirection
+	end
+	local mapIndex = rotateMap[sides[direction]] -- self index in rotateMap
+	local localMapIndex = rotateMap[sides[localDirection]]
+	return rotateMap[(mapIndex + localMapIndex) % 4 + 1]
+end
+
+help.inverseTransformDirection = "function(startDirection:number):number - transforms direction from start space to local space."
+function robotExt.inverseTransformDirection(startDirection)	
+	if(localDirection < 2)then
+		return startDirection
+	end
+	error("not implemented exception")
+	--local mapIndex = rotateMap[sides[direction]] -- self index in rotateMap
+	--local localMapIndex = rotateMap[sides[localDirection]]
+	--return rotateMap[(mapIndex + localMapIndex) % 4 + 1]
+end
+
+help.rotate = "function(side: number[, isStartSpace:bool]):number - rotate robot to the [side] "..
+	"relative the current rotation by default or (if [isStartSpace]=true) relative start rotation. "..
+	"The robot can not rotate to [up] or [down] sides, so function returns the result side for interaction, "..
+	"it's one of {sides.front, sides.up, sides.down}."
+function robotExt.rotate(side, isStartSpace)
+	if(side<2)then
+		--error("Wrong [side] for rotation. The robot can not rotate to [up] or [down] sides.")		
+		return side
+	end
+	if(isStartSpace)then --convert to local space
+		side = robotExt.inverseTransformDirection(side)
+	end
+	--TODO: rotation logic must be here
+	--error("not implemented exception")
+
+	direction = robotExt.transformDirection(side)-- update direction
+	return sides.front
+end
+
 help.getPos = "function():table{x, y, z} - returns table contains current robot coordinates relative the start position, "..
     "where x - right, y - up, z - forward directional axes."
 	--x = "number - value of X axis of current robot position."}
 function robotExt.getPos()
 	return {x=pos.x, y=pos.y, z=pos.z}
-end
-
-help.getDir = "function():number - returns value from sides as direction relative the start."
-function robotExt.getDir()
-	return direction
 end
 
 help.move = "function(direction:number, distance:number[, isStartSpace:bool]):bool, number "..
@@ -40,31 +82,6 @@ function robotExt.move(direction, distance, isStartSpace)
     --[[return component.robot.move(side)]]--
 end
 
-help.rotate = "function(side: number[, isStartSpace:bool]) - rotate robot to the [side] "..
-	"relative the current rotation by default or (if [isStartSpace]=true) relative start rotation."
-function robotExt.rotate(side, isStartSpace)
-	isStartSpace = isStartSpace or false
-
-	error("not implemented exception")
-	--[[local count = 0
-	local newSide = side
-	if(side == sides.left) then
-		if invert then count = 1 else count = 3 end
-		newSide = sides.forward
-	elseif (side == sides.right) then
-		if invert then count = 3 else count = 1 end
-		newSide = sides.forward
-	elseif (side == sides.back) then
-		count = 2
-		newSide = sides.forward
-	end
-	--print("Повернуться раз: " .. tostring(count))
-	for i=1, count do
-		robot.turnRight()
-	end
-
-	return newSide]]--
-end
 --endregion
 
 --[[region World interaction
@@ -217,7 +234,6 @@ local function wrapTable(table, helpTable)
 	end
 end
 
---robotExt["reload"] = wrapFn(robotExt["reload"], help["reload"])
 wrapTable(robotExt, help)
 
 --endregion
