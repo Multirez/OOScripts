@@ -11,11 +11,31 @@ local help = { } -- help texts for robotExt will be wrapped at the end
 
 -- region Movement
 local pos = { ["x"] = 0, ["y"] = 0, ["z"] = 0 }
+setmetatable(pos, {
+	__add = function (pos, add) -- the addition of two vectors
+		pos.x = pos.x + add.x
+		pos.y = pos.y + add.y
+		pos.z = pos.z + add.z
+		return pos
+	end,
+	__sub = function (pos, sub) -- the subtraction of two vectors
+		pos.x = pos.x - sub.x
+		pos.y = pos.y - sub.y
+		pos.z = pos.z - sub.z
+		return pos
+	end,
+	__mul = function (pos, m) -- multiplication of vector by a number
+		pos.x = pos.x * m
+		pos.y = pos.y * m
+		pos.z = pos.z * m
+		return pos
+	end
+})
 local direction = sides.forward
 
 help.setOrigin = "function() - robot resets its navigation state to (0,0,0), so that the current position as the origin."
 function robotExt.setOrigin()
-	pos = { ["x"] = 0, ["y"] = 0, ["z"] = 0 }
+	pos.x, pos.y, pos.z = 0, 0, 0
 	direction = sides.forward
 end
 
@@ -25,11 +45,8 @@ function robotExt.getDir()
 end
 
 local rotateMap = {
-	sides.forward,sides.right,sides.back,sides.left,
-	front = 0,
-	right = 1,
-	back = 2,
-	left = 3
+	sides.forward, sides.right, sides.back, sides.left,
+	front = 0, right = 1, back = 2, left = 3
 } -- the help table for the sides conversion
 
 help.transformDirection = "function(localDirection:number):number - transforms direction from local space to start space."
@@ -45,7 +62,7 @@ end
 
 help.inverseTransformDirection = "function(startDirection:number):number - transforms direction from start space to local space."
 function robotExt.inverseTransformDirection(startDirection)
-	if (localDirection < 2) then
+	if (startDirection < 2) then
 		return startDirection
 	end
 	local deltaMapIndex = rotateMap[sides[startDirection]] - rotateMap[sides[direction]]
@@ -82,17 +99,108 @@ function robotExt.getPos()
 	return { x = pos.x, y = pos.y, z = pos.z }
 end
 
-help.move = "function(direction:number, distance:number[, isStartSpace:bool]):bool, number " ..
+local side2vector = {
+	[sides.right] = { x = 1, y = 0, z = 0 },
+	[sides.left] = { x = -1, y = 0, z = 0 },
+	[sides.up] = { x = 0, y = 1, z = 0 },
+	[sides.down] = { x = 0, y = -1, z = 0 },	
+	[sides.front] = { x = 0, y = 0, z = 1 },
+	[sides.back] = { x = 0, y = 0, z = -1 }
+}
+
+help.move = "function(direction:number, distance:number[, isStartSpace:bool]):bool[, number, string] " ..
 "- robot try to move at [distance] of blocks to the [direction] as sides value. " ..
 "If [isStartSpace]=true robot will move relative its rotation at the start, otherwise relative the current rotation. " ..
-"Returns true if final movement point has been reached, otherwise false and how many blocks has passed."
+"Returns true if final movement point has been reached, otherwise nil and how many blocks has passed and "..
+"describing why moving failed, which will either be 'impossible move', 'not enough energy' or "..
+"the description of the obstacle as robot.detect would return."
 function robotExt.move(direction, distance, isStartSpace)
-	error("not implemented exception")
-	--[[ return component.robot.move(side) ]]
-	--
+	local moveSide = robotExt.rotate(direction, isStartSpace)
+	local moveVector = moveSide < 2 and side2vector[moveSide] or side2vector[robotExt.getDir()]
+	local i, isMoved, reason = 0, true, nil
+	while(i<distance and isMoved)do
+		isMoved, reason = component.robot.move(moveSide)
+		i = i + 1
+		pos = pos + moveVector
+	end	
+	if(not isMoved)then
+		i = i - 1
+		pos = pos - moveVector
+		return isMoved, i, reason
+	end
+	return true
 end
 
 -- endregion
+
+-- region Debug
+help.reload = "function():robotExt - reload module 'robotExt' from lib folder. Uses only for debug purposes, example: myRobotExt = myRobotExt.reload()."
+function robotExt.reload()
+	package.loaded["robotExt"] = nil
+	_G["robotExt"] = nil
+	return require("robotExt")
+end
+
+help.getInfo = "function(self):string - returns help information for functions of this library."
+function robotExt.getInfo(self, ident)
+	ident = ident or ""
+	result = "{"
+	ident = ident .. " "
+	newLine = ""
+	for n, v in pairs(self) do
+		if (type(v) == "table" and(not getmetatable(v) or not getmetatable(v).__tostring)) then
+			result = result .. newLine .. n .. "=" .. robotExt.getInfo(v, ident)
+		else
+			result = result .. newLine .. n .. "=" .. tostring(v)
+		end
+		newLine = ",\n" .. ident
+	end
+	result = result .. "}"
+	return result
+end
+-- endregion
+
+-- region Help wrapper
+local function wrapFn(fn, desc)
+	return setmetatable( { }, {
+		__call = function(_, ...) return fn(...) end,
+		__tostring = function() return desc end
+	} )
+end
+ 
+local function wrapTable(table, helpTable)
+	if (type(helpTable) ~= "table") then
+		print("Error! HelpTable must have same structure like the wrap table")
+		return
+	end
+
+	for n, v in pairs(table) do
+		if (type(v) == "table") then
+			if (type(helpTable[n]) == "table") then
+				wrapTable(v, helpTable[n])
+			end
+			if (type(helpTable[n]) == "string") then
+				mt = getmetatable(v)
+				if (not mt) then
+					mt = { }
+					setmetatable(v, mt)
+				end
+				mt.__tostring = function() return helpTable[n] end
+			end
+		elseif (type(v) == "function") then
+			if (type(helpTable[n]) == "string") then
+				table[n] = wrapFn(v, helpTable[n])
+			end
+		end
+	end
+end
+
+wrapTable(robotExt, help)
+
+-- endregion
+
+return robotExt
+
 
 --[[region World interaction
 
@@ -185,71 +293,3 @@ end
 
 --endregion
 ]]--
-
--- region Debug
-help.reload = "function():robotExt - reload module 'robotExt' from lib folder. Uses only for debug purposes, example: myRobotExt = myRobotExt.reload()."
-function robotExt.reload()
-	package.loaded["robotExt"] = nil
-	_G["robotExt"] = nil
-	return require("robotExt")
-end
-
-help.getInfo = "function(self):string - returns help information for functions of this library."
-function robotExt.getInfo(self, ident)
-	ident = ident or ""
-	result = "{"
-	ident = ident .. " "
-	newLine = ""
-	for n, v in pairs(self) do
-		if (type(v) == "table" and(not getmetatable(v) or not getmetatable(v).__tostring)) then
-			result = result .. newLine .. n .. "=" .. robotExt.getInfo(v, ident)
-		else
-			result = result .. newLine .. n .. "=" .. tostring(v)
-		end
-		newLine = ",\n" .. ident
-	end
-	result = result .. "}"
-	return result
-end
--- endregion
-
--- region Help wrapper
-local function wrapFn(fn, desc)
-	return setmetatable( { }, {
-		__call = function(_, ...) return fn(...) end,
-		__tostring = function() return desc end
-	} )
-end
- 
-local function wrapTable(table, helpTable)
-	if (type(helpTable) ~= "table") then
-		print("Error! HelpTable must have same structure like the wrap table")
-		return
-	end
-
-	for n, v in pairs(table) do
-		if (type(v) == "table") then
-			if (type(helpTable[n]) == "table") then
-				wrapTable(v, helpTable[n])
-			end
-			if (type(helpTable[n]) == "string") then
-				mt = getmetatable(v)
-				if (not mt) then
-					mt = { }
-					setmetatable(v, mt)
-				end
-				mt.__tostring = function() return helpTable[n] end
-			end
-		elseif (type(v) == "function") then
-			if (type(helpTable[n]) == "string") then
-				table[n] = wrapFn(v, helpTable[n])
-			end
-		end
-	end
-end
-
-wrapTable(robotExt, help)
-
--- endregion
-
-return robotExt
