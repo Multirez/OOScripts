@@ -70,9 +70,9 @@ function robotExt.inverseTransformDirection(startDirection)
 end
 
 help.rotate = "function(side: number[, isStartSpace:bool]):number - rotate robot to the [side] " ..
-"relative the current rotation by default or (if [isStartSpace]=true) relative start rotation. " ..
-"The robot can not rotate to [up] or [down] sides, so function returns the result side for interaction, " ..
-"it's one of {sides.front, sides.up, sides.down}."
+	"relative the current rotation by default or (if [isStartSpace]=true) relative start rotation. " ..
+	"The robot can not rotate to [up] or [down] sides, so function returns the result side for interaction, " ..
+	"it's one of {sides.front, sides.up, sides.down}."
 function robotExt.rotate(side, isStartSpace)
 	if (side < 2) then
 		-- error("Wrong [side] for rotation. The robot can not rotate to [up] or [down] sides.")		
@@ -93,7 +93,7 @@ function robotExt.rotate(side, isStartSpace)
 end
 
 help.getPos = "function():table{x, y, z} - returns table contains current robot coordinates relative the start position, " ..
-"where x - right, y - up, z - forward directional axes."
+	"where x - right, y - up, z - forward directional axes."
 -- x = "number - value of X axis of current robot position."}
 function robotExt.getPos()
 	return { x = pos.x, y = pos.y, z = pos.z }
@@ -109,11 +109,11 @@ local side2vector = {
 }
 
 help.move = "function(direction:number, distance:number[, isStartSpace:bool]):bool[, number, string] " ..
-"- robot try to move at [distance] of blocks to the [direction] as sides value. " ..
-"If [isStartSpace]=true robot will move relative its rotation at the start, otherwise relative the current rotation. " ..
-"Returns true if final movement point has been reached, otherwise nil and how many blocks has passed and "..
-"describing why moving failed, which will either be 'impossible move', 'not enough energy' or "..
-"the description of the obstacle as robot.detect would return."
+	"- robot try to move at [distance] of blocks to the [direction] as sides value. " ..
+	"If [isStartSpace]=true robot will move relative its rotation at the start, otherwise relative the current rotation. " ..
+	"Returns [true] if final movement point has been reached, otherwise [false] and how many blocks has passed and "..
+	"describing why moving failed, which will either be 'impossible move', 'not enough energy' or "..
+	"the description of the obstacle as robot.detect would return."
 function robotExt.move(direction, distance, isStartSpace)
 	local moveSide = robotExt.rotate(direction, isStartSpace)
 	local moveVector = moveSide < 2 and side2vector[moveSide] or side2vector[robotExt.getDir()]
@@ -126,7 +126,7 @@ function robotExt.move(direction, distance, isStartSpace)
 	if(not isMoved)then
 		i = i - 1
 		pos = pos - moveVector
-		return isMoved, i, reason
+		return false, i, reason
 	end
 	return true
 end
@@ -136,21 +136,60 @@ end
 --region World interaction
 
 help.swing = "function(side:number[, targetSide:number [, sneaky:bool]]):bool[, string] - Makes the robot use the item "..
-"currently in the tool slot against the block or space immediately in [side] of the robot "..
-"in the same way as if a player would make a left-click. [targetSide] - if given the robot will try to 'left-click' "..
-"only on the surface as specified by side, otherwise the robot will try all possible sides. "..
-"Returns [true] if the robot could interact with the block or entity in front of it, false otherwise. "..
-"If successful the secondary parameter describes what the robot interacted with "..
-"and will be one of 'entity', 'block' or 'fire'."
+	"currently in the tool slot against the block or space immediately in [side] of the robot "..
+	"in the same way as if a player would make a left-click. [targetSide] - if given the robot will try to 'left-click' "..
+	"only on the surface as specified by side, otherwise the robot will try all possible sides. "..
+	"Returns [true] if the robot could interact with the block or entity, [false] otherwise. "..
+	"If successful the secondary parameter describes what the robot interacted with "..
+	"and will be one of 'entity', 'block' or 'fire'."
 function robotExt.swing(side, targetSide, sneaky)
-   return component.robot.swing(side, targetSide, sneaky ~= nil and sneaky ~= false)
+	local backDir = direction
+	side = robotExt.rotate(side)
+   isSwing, desrciption = component.robot.swing(side, targetSide, sneaky ~= nil and sneaky ~= false)
+	robotExt.rotate(backDir, true)
+
+	return isSwing, desrciption
 end
 
---[[
+help.detect = "function(side:number): bool, string - detects what is directly in [side] of the robot. "..
+	"Returns: [true] if the robot if whatever is in [side] of the robot would prevent him from moving "..
+	"(a block or an entity), [false] otherwise. The second parameter describes what is in [side] in general "..
+	"and is one of either 'entity', 'solid', 'replaceable', 'liquid', 'passable' or 'air'."
 function robotExt.detect(side)
-   return component.robot.detect(side)
+	local backDir = direction
+	side = robotExt.rotate(side)
+   local isObstacle, desrciption = component.robot.detect(side)
+	robotExt.rotate(backDir, true)
+
+	return isObstacle, desrciption
 end
-]]--
+
+help.mine = "function(direction:number, distance:number[, isStartSpace:bool]):bool[, number, string] " ..
+	"- robot try to mine at [distance] of blocks to the [direction] as sides value. " ..
+	"If [isStartSpace]=true robot will mine relative its rotation at the start, otherwise relative the current rotation. " ..
+	"Returns [true] if final point has been reached, otherwise [false] and how many blocks has passed and "..
+	"describing why moving failed, which will either be 'impossible move', 'not enough energy' or "..
+	"the description of the obstacle as robot.detect would return."
+function robotExt.mine(direction, distance, isStartSpace)
+	local moveSide = robotExt.rotate(direction, isStartSpace)
+	local moveVector = moveSide < 2 and side2vector[moveSide] or side2vector[robotExt.getDir()]
+	local i, isMoved, reason, isDetect = 0,  true, nil, false
+	while(i<distance and isMoved)do
+		isMoved, reason = component.robot.move(moveSide)
+		if(not isMoved)then
+			if(robotExt.swing(moveSide))then
+				isMoved, reason = not component.robot.detect(moveSide)
+			end
+		else
+			i = i + 1
+			pos = pos + moveVector
+		end
+	end	
+	if(i<distance)then
+		return false, i, reason
+	end
+	return true
+end
 
 --endregion
 
