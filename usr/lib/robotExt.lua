@@ -196,7 +196,7 @@ help.find = "function(filter:string[, warn:bool]):bool, number - scans the block
 	"Returns [true] if found, and side for interaction. Require geolayzer for working. "..
 	"If warn is [true] - throws error if geolyzer not available."
 function robotExt.find(filter, warn)
-	if(component.isAvailable("geolyzer") ~= true) then
+	if(not component.isAvailable("geolyzer")) then
 		if(warn)then
 			error("Error! robotExt.find(filter) require geolyzer for working.")
 		end
@@ -225,6 +225,48 @@ function robotExt.find(filter, warn)
 	return false
 end
 
+help.findChest = "function([minSize:number[, onlyEmptyCells:bool]]):bool, number - checks blocks around "..
+	"until finds one with inventory size more or equal [minSize], 5 by default. Returns [true] if found one "..
+	"and side for interaction with inventory. Requires inventory_controller for working. "..
+	"If [onlyEmptyCells] is specified - will found block with empty slots quantity more or equal [minSize]."
+function robotExt.findChest(minSize, onlyEmptyCells)
+	if(not component.isAvailable("inventory_controller")) then
+		print("Error! robotExt.findChest() require inventory_controller for working.")
+		return false
+	end
+	minSize = minSize or 5 -- minimum size for chest by default
+	local ic = component.inventory_controller
+	local size = 0
+	local function check(side)
+		size = ic.getInventorySize(side)
+		if(not onlyEmptyCells)then
+			return size ~= nill and size >= minSize
+		end
+		--count empty slots
+		size = size or 0
+		local empty = 0
+		for i=1, size do
+			empty = ic.getSlotStackSize(side, i) == 0 and (empty + 1) or empty
+		end
+		return empty >= minSize
+	end
+
+	local checkList = {sides.front, sides.down, sides.up}
+	for _, v in pairs(checkList) do
+		if(check(v))then 
+			return true, v
+		end
+	end
+	for i=1, 3 do
+		robotExt.rotate(sides.right)
+		if(check(sides.front))then 
+			return true, sides.front
+		end
+	end
+
+	robotExt.rotate(sides.right)
+	return false
+end
 --endregion
 
 -- region Debug
@@ -296,85 +338,7 @@ wrapTable(robotExt, help)
 return robotExt
 
 --[[
-
 function math.sign(x)
 	return x<0 and -1 or 1
 end
-
-function robot.findChest() -- true если нашел и сторона куда повернут, и сторона с которой взаимодействовать
-    if(component.isAvailable("inventory_controller") ~= true) then
-        print("Нет контроллера инвентаря чтобы проверять сундуки.")
-        return false
-    end
-
-    local minSize = 5
-    local ic = component.inventory_controller
-
-    local size = ic.getInventorySize(sides.forward)
-    if(size ~= nill and size > minSize)then
-        return true, sides.forward, sides.forward
-    end
-    size = ic.getInventorySize(sides.up)
-    if(size ~= nill and size > minSize)then
-        return true, sides.up, sides.up
-    end
-    robot.turnRight()
-    size = ic.getInventorySize(sides.forward)
-    if(size ~= nill and size > minSize)then
-        return true, sides.right, sides.forward
-    end
-    robot.turnRight()
-    size = ic.getInventorySize(sides.forward)
-    if(size ~= nill and size > minSize)then
-        return true, sides.back, sides.forward
-    end
-    robot.turnRight()
-    size = ic.getInventorySize(sides.forward)
-    if(size ~= nill and size > minSize)then
-        return true, sides.left, sides.forward
-    end
-
-    robot.turnRight()
-    return false
-end
-
-function robot.find(filter, warn) -- true если нашел и сторона куда повернут, и сторона с которой взаимодействовать
-    if(component.isAvailable("geolyzer") ~= true) then
-        if(warn == nil or warn) then print("Нет геолайзера чтобы осмотреться вокруг") end
-        return false
-    end
-    local geo = component.geolyzer
-    local function Check(block)
-        return block ~= nill and string.find(block.name, filter) ~= nil
-    end
-
-    local block = geo.analyze(sides.forward)
-    if(Check(block))then
-        return true, sides.forward, sides.forward
-    end
-    block = geo.analyze(sides.up)
-    if(Check(block))then
-        return true, sides.up, sides.up
-    end
-    robot.turnRight()
-    block = geo.analyze(sides.forward)
-    if(Check(block))then
-        return true, sides.right, sides.forward
-    end
-    robot.turnRight()
-    block = geo.analyze(sides.forward)
-    if(Check(block))then
-        return true, sides.back, sides.forward
-    end
-    robot.turnRight()
-    block = geo.analyze(sides.forward)
-    if(Check(block))then
-        return true, sides.left, sides.forward
-    end
-
-    robot.turnRight()
-    return false
-end
-
---endregion
 ]]--
