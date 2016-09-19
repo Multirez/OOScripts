@@ -135,14 +135,14 @@ end
 
 --region World interaction
 
-help.swing = "function(side:number[, targetSide:number [, sneaky:bool]]):bool[, string] - Makes the robot use the item "..
+help.swingAt = "function(side:number[, targetSide:number [, sneaky:bool]]):bool[, string] - Makes the robot use the item "..
 	"currently in the tool slot against the block or space immediately in [side] of the robot "..
 	"in the same way as if a player would make a left-click. [targetSide] - if given the robot will try to 'left-click' "..
 	"only on the surface as specified by side, otherwise the robot will try all possible sides. "..
 	"Returns [true] if the robot could interact with the block or entity, [false] otherwise. "..
 	"If successful the secondary parameter describes what the robot interacted with "..
 	"and will be one of 'entity', 'block' or 'fire'."
-function robotExt.swing(side, targetSide, sneaky)
+function robotExt.swingAt(side, targetSide, sneaky)
 	local backDir = direction
 	side = robotExt.rotate(side)
    isSwing, desrciption = component.robot.swing(side, targetSide, sneaky ~= nil and sneaky ~= false)
@@ -151,11 +151,11 @@ function robotExt.swing(side, targetSide, sneaky)
 	return isSwing, desrciption
 end
 
-help.detect = "function(side:number): bool, string - detects what is directly in [side] of the robot. "..
+help.detectAt = "function(side:number): bool, string - detects what is directly in [side] of the robot. "..
 	"Returns: [true] if the robot if whatever is in [side] of the robot would prevent him from moving "..
 	"(a block or an entity), [false] otherwise. The second parameter describes what is in [side] in general "..
 	"and is one of either 'entity', 'solid', 'replaceable', 'liquid', 'passable' or 'air'."
-function robotExt.detect(side)
+function robotExt.detectAt(side)
 	local backDir = direction
 	side = robotExt.rotate(side)
    local isObstacle, desrciption = component.robot.detect(side)
@@ -177,8 +177,9 @@ function robotExt.mine(direction, distance, isStartSpace)
 	while(i<distance and isMoved)do
 		isMoved, reason = component.robot.move(moveSide)
 		if(not isMoved)then
-			if(robotExt.swing(moveSide))then
-				isMoved, reason = not component.robot.detect(moveSide)
+			if(robotExt.swingAt(moveSide))then
+				isDetect, reason = component.robot.detectAt(moveSide)
+				isMoved = not isDetect
 			end
 		else
 			i = i + 1
@@ -189,6 +190,39 @@ function robotExt.mine(direction, distance, isStartSpace)
 		return false, i, reason
 	end
 	return true
+end
+
+help.find = "function(filter:string[, warn:bool]):bool, number - scans the blocks around until finds one by filter. "..
+	"Returns [true] if found, and side for interaction. Require geolayzer for working. "..
+	"If warn is [true] - throws error if geolyzer not available."
+function robotExt.find(filter, warn)
+	if(component.isAvailable("geolyzer") ~= true) then
+		if(warn)then
+			error("Error! robotExt.find(filter) require geolyzer for working.")
+		end
+		return false
+	end
+	local geo = component.geolyzer
+	local function check(side)
+		local blockData = geo.analyze(side)
+		return blockData ~= nill and string.find(blockData.name, filter) ~= nil
+	end
+
+	local checkList = {sides.front, sides.down, sides.up}
+	for _, v in pairs(checkList) do
+		if(check(v))then 
+			return true, v
+		end
+	end
+	for i=1, 3 do
+		robotExt.rotate(sides.right)
+		if(check(sides.front))then 
+			return true, sides.front
+		end
+	end
+
+	robotExt.rotate(sides.right)
+	return false
 end
 
 --endregion
