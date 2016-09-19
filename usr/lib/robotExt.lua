@@ -46,7 +46,7 @@ end
 
 local rotateMap = {
 	sides.forward, sides.right, sides.back, sides.left,
-	front = 0, right = 1, back = 2, left = 3
+	front = 0, right = 1, back = 2, left = -1
 } -- the help table for the sides conversion
 
 help.transformDirection = "function(localDirection:number):number - transforms direction from local space to start space."
@@ -57,7 +57,7 @@ function robotExt.transformDirection(localDirection)
 	local mapIndex = rotateMap[sides[direction]]
 	-- self index in rotateMap
 	local localMapIndex = rotateMap[sides[localDirection]]
-	return rotateMap[(mapIndex + localMapIndex) % 4 + 1]
+	return rotateMap[(mapIndex + localMapIndex + 8) % 4 + 1]
 end
 
 help.inverseTransformDirection = "function(startDirection:number):number - transforms direction from start space to local space."
@@ -66,7 +66,7 @@ function robotExt.inverseTransformDirection(startDirection)
 		return startDirection
 	end
 	local deltaMapIndex = rotateMap[sides[startDirection]] - rotateMap[sides[direction]]
-	return rotateMap[(deltaMapIndex + 4) % 4 + 1]
+	return rotateMap[(deltaMapIndex + 8) % 4 + 1]
 end
 
 help.rotate = "function(side: number[, isStartSpace:bool]):number - rotate robot to the [side] " ..
@@ -83,11 +83,13 @@ function robotExt.rotate(side, isStartSpace)
 		side = robotExt.inverseTransformDirection(side)
 	end
 	-- rotate robot
-	for i = 1, rotateMap[sides[side]] do
-		component.robot.turn(true)
+	local i = rotateMap[sides[side]]
+	local di = i < 0 and 1 or -1
+	while(i ~= 0)do
+		component.robot.turn(i > 0)
+		i = i + di
 	end
-	direction = robotExt.transformDirection(side)
-	-- update direction
+	direction = robotExt.transformDirection(side) -- update direction
 
 	return sides.front
 end
