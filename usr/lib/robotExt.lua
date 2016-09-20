@@ -6,7 +6,7 @@
 local sides = require("sides")
 local component = require("component")
 
-local robotExt = { }
+local robotExt = require("robot")
 local help = { } -- help texts for robotExt will be wrapped at the end
 
 -- region Movement
@@ -268,6 +268,59 @@ function robotExt.findChest(minSize, onlyEmptyCells)
 
 	robotExt.rotate(sides.right)
 	return false
+end
+--endregion
+
+--region Override the functions of movement from the robot API for the position tracking
+
+help.forward = "robot.forward(): boolean[, string] - Tries to move the robot forward. "..
+	"Returns: true if the robot successfully moved, nil otherwise. If movement fails a secondary result "..
+	"will be returned describing why it failed, which will either be 'impossible move', 'not enough energy' "..
+	"or the description of the obstacle as robot.detect would return."
+function robotExt.forward()
+	local isMoved, _, reason = robotExt.move(sides.front, 1)
+	return isMoved, reason
+end
+
+help.back = "robot.back(): boolean[, string] - As robot.forward() except that the robot tries to move backward."
+function robotExt.back()
+	-- does not rotate, only moving
+	local isMoved, reason = component.robot.move(sides.back)
+	if(isMoved)then --update pos
+		pos = pos + side2vector[robotExt.transformDirection(sides.back)]
+	end
+	return isMoved, reason
+end
+
+help.up = "robot.up(): boolean[, string] - As robot.forward() except that the robot tries to move upwards."
+function robotExt.up()
+	local isMoved, _, reason = robotExt.move(sides.up, 1)
+	return isMoved, reason
+end
+
+help.down = "robot.down(): boolean[, string] - As robot.forward() except that the robot tries to move downwards."
+function robotExt.down()
+	local isMoved, _, reason = robotExt.move(sides.down, 1)
+	return isMoved, reason
+end
+
+help.turnLeft = "robot.turnLeft() - Turns the robot 90° to the left. Note that this can only fail "..
+	"if the robot has not enough energy to perform the turn but has not yet shut down because of it."
+function robotExt.turnLeft()	
+	robotExt.rotate(sides.left)
+	return true
+end
+
+help.turnRight = "robot.turnRight() - As robot.turnLeft except that the robot turns 90° to the right."
+function robotExt.turnRight()
+	robotExt.rotate(sides.right)
+	return true 
+end
+
+help.turnAround = "robot.turnAround() - This is the same as calling robot.turnRight twice."
+function robotExt.turnAround()
+	robotExt.rotate(sides.back)
+	return true
 end
 --endregion
 
