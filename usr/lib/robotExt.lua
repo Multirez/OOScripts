@@ -349,6 +349,24 @@ function robotExt.getInfo(self, ident)
 	result = result .. "}"
 	return result
 end
+
+local function dropHelp(table) -- remove help texts
+	for n, v in pairs(table) do
+		if (type(v) == "table") then
+			robotExt.dropHelp(v)
+		end
+	end	
+	local mt = getmetatable(table)
+	if (mt) then
+		mt.__tostring = nil
+	end
+end
+
+help.dropHelp = "function(self) - removes help texts, all meta __tostring() functions will be nil, uses GC at the end."
+function robotExt.dropHelp(self)
+	dropHelp(self)
+	os.sleep(0) -- collectgarbage("collect")
+end
 -- endregion
 
 -- region Help wrapper
@@ -364,7 +382,7 @@ local function wrapTable(table, helpTable)
 		print("Error! HelpTable must have same structure like the wrap table")
 		return
 	end
-
+	local mt -- temp metatable
 	for n, v in pairs(table) do
 		if (type(v) == "table") then
 			if (type(helpTable[n]) == "table") then
